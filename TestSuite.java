@@ -8,6 +8,9 @@ public class TestSuite{
     System.out.println("\nMoveTests:");
     MoveTests moveTests = new MoveTests(); 
 
+    System.out.println("\nBoardTests:");
+    BoardTests boardTests = new BoardTests();
+
     System.out.println("\n\t     ...done");
   }
 }

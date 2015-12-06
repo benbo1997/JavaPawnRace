@@ -1,5 +1,5 @@
 public class Square{
-  int xCoord, yCoord;
+  final int xCoord, yCoord;
   Color color = Color.NONE;
 
   public Square(int xCoord, int yCoord, Color color) {
@@ -23,7 +23,7 @@ public class Square{
 
   public Color occupiedBy(){
     //implement
-    return Color.NONE;
+    return this.color;
   }
 
   public void setOccupier(Color color){

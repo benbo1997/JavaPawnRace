@@ -1,11 +1,14 @@
 public class Move{
   Square from, to;
   boolean isCapture;
+  boolean isEnPassantCapture;
 
-  public Move(Square from, Square to, boolean isCapture){
+  public Move(Square from, Square to, boolean isCapture,
+              boolean isEnPassantCapture){
     this.from = from;
     this.to = to;
     this.isCapture = isCapture;
+    this.isEnPassantCapture = isEnPassantCapture;
   }
 
   public Square getFrom(){
@@ -16,12 +19,12 @@ public class Move{
     return to;
   }
 
-  public boolean isCapture(){
-    return isCapture;
+  public boolean isAnyCapture(){
+    return (isCapture || isEnPassantCapture);
   }
 
   public String getSAN(){
-    if (isCapture()){
+    if (isAnyCapture()){
       String SAN = from.getCoord() + "x" + to.getCoord();
       return SAN;
     } else if (isAmbiguous()){
