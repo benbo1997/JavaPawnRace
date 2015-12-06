@@ -22,17 +22,34 @@ public class Square{
   }
 
   public Color occupiedBy(){
-    //implement
     return this.color;
   }
 
   public void setOccupier(Color color){
-    //implement
+    this.color = color;
   }
 
   public String getCoord(){
     char c = (char) (xCoord + (int) 'A');
     String coord = "" + c + (yCoord + 1);
     return coord;
+  }
+
+  public boolean equals(Square square){
+    if (this.getX() != square.getX()){
+      return false;
+    }
+    if (this.getY() != square.getY()){
+      return false;
+    }
+    if (this.occupiedBy() != square.occupiedBy()){
+      return false;
+    }
+    return true; 
+  }
+
+  public String toString(){
+    return "(Square at (" + this.getX() + ", " + this.getY() +
+                 ") of colour " + this.occupiedBy() + ")";
   }
 }
