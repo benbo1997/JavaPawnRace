@@ -54,18 +54,55 @@ public class Game{
     return Color.NONE;
   }
 
-  // kind of cheeky in how it asserts a legit move
+  // change switch statement to better method?
   public Move parseMove(String san){
     boolean ambiguous = false;
+    boolean isAnyCapture = false;
     int len = san.length();
-
     String from, to;
+
     switch (len){
     case 2:
-      to = 
+      to = san;
     case 5:
+      ambiguous = true;
+      from = "" + san.charAt(0) + san.charAt(1);
+      to = "" + san.charAt(3) + san.charAt(4);
+      if (san.charAt(3) == 'x'){
+        isAnyCapture = true;
+      }
     default: return  null;
 
     }
+  } 
+
+  private boolean isValidMove(String to){
+    boolean valid = true;
+    valid &= isValidCoord(to);
+
+    return valid;
+  }
+
+  private boolean isValidMove(String from, String to, boolean isAnyCapture){
+    boolean valid = true;
+    valid &= isValidCoord(to);
+    valid &= isValidCoord(from);
+
+    return valid;
+  }
+
+  private boolean isValidCoord(String coord){
+    char xLetter = coord.charAt(0);
+    char yNumber = coord.charAt(1);
+
+    int xInt = (int) xLetter - (int) 'A';
+    int yInt = (int) yNumber - (int) '0';
+
+    return (((xInt < 8) && (xInt >= 0)) || ((yInt < 8) && (yInt >= 0)));
+    
+  }
+
+  private boolean isEnPassantCapture(){
+    return false;
   }
 }
