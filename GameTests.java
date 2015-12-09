@@ -1,6 +1,6 @@
 public class GameTests{
   public GameTests(){
-
+    parseMoveTests();
   }
 
   private static void parseMoveTests(){
