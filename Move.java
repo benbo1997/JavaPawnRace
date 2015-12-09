@@ -40,4 +40,22 @@ public class Move{
     //implement
     return false;
   }
+
+  public boolean isFirstMove(){
+    switch (from.occupiedBy()){
+    case WHITE:
+      if (from.getY() == 1 && to.getY() == 3){
+        return true;
+      }
+      return false;
+    case BLACK:
+      if (from.getY() == 6 && to.getY() == 4){
+        return true;
+      }
+      return false;
+    default:
+      assert (true): "Can't work out if an invalid move was the first move";
+      return false;
+    }
+  }
 }

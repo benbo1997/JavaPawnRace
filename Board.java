@@ -48,7 +48,7 @@ public class Board{
                                                  Color.NONE);
   }
   // assumes this was the last move made (squares are reverted to how they
-  // were addressed in move
+  // were addressed in move)
   public void unapplyMove(Move move){
     Square from = move.getFrom();
     Square to = move.getTo();
