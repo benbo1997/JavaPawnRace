@@ -11,12 +11,30 @@ public class Move{
     this.isEnPassantCapture = isEnPassantCapture;
   }
 
+  public boolean equals(Move move){
+    if (this.from.equals(move.getFrom()) &&
+        this.to.equals(move.getTo()) &&
+        (this.isCapture == move.getIsCapture()) &&
+        (this.isEnPassantCapture == move.getIsEnPassantCapture())){
+      return true;
+    }
+    return false;
+  }
+
   public Square getFrom(){
     return from;
   }
 
   public Square getTo(){
     return to;
+  }
+
+  public boolean getIsCapture(){
+    return isCapture;
+  }
+
+  public boolean getIsEnPassantCapture(){
+    return isEnPassantCapture;
   }
 
   public boolean isAnyCapture(){

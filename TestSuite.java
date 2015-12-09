@@ -11,6 +11,9 @@ public class TestSuite{
     System.out.println("\nBoardTests:");
     BoardTests boardTests = new BoardTests();
 
+    System.out.println("\nGameTests:");
+    GameTests gameTests = new GameTests();
+
     System.out.println("\n\t     ...done");
   }
 }
