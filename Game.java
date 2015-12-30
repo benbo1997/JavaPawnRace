@@ -46,8 +46,34 @@ public class Game{
 
   public boolean isFinished(){
     // reached end
+    if (whiteWin() || blackWin()){
+      return true;
+    }
+
     // all pawns gone
+
+
     // no valid moves left
+    return false;
+  }
+
+  private boolean whiteWin(){
+    for (int i = 0; i < 8; i++) {
+      if (board.getSquare(i, 7).occupiedBy() == Color.WHITE) {
+        winner = Color.WHITE;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean blackWin(){
+    for (int i = 0; i < 8; i++){
+      if (board.getSquare(i, 0).occupiedBy() == Color.BLACK) {
+        winner = Color.BLACK;
+        return true;
+      }
+    }
     return false;
   }
 
