@@ -36,6 +36,9 @@ public class Square{
   }
 
   public boolean equals(Square square){
+    if(square == null){
+      return false;
+    }
     if (this.getX() != square.getX()){
       return false;
     }
@@ -52,4 +55,5 @@ public class Square{
     return "(Square at (" + this.getX() + ", " + this.getY() +
                  ") of colour " + this.occupiedBy() + ")";
   }
+
 }

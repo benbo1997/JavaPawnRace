@@ -12,6 +12,9 @@ public class Move{
   }
 
   public boolean equals(Move move){
+    if(move == null){
+      return false;
+    }
     if (this.from.equals(move.getFrom()) &&
         this.to.equals(move.getTo()) &&
         (this.isCapture == move.getIsCapture()) &&
@@ -19,6 +22,16 @@ public class Move{
       return true;
     }
     return false;
+  }
+
+  @Override
+  public String toString() {
+    return "Move{" +
+            "from=" + from +
+            ", to=" + to +
+            ", isCapture=" + isCapture +
+            ", isEnPassantCapture=" + isEnPassantCapture +
+            '}';
   }
 
   public Square getFrom(){

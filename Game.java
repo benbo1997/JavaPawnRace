@@ -1,24 +1,37 @@
+import sun.security.ssl.Debug;
+
+import java.util.Arrays;
+
 public class Game{
   Move[] history = new Move[120];
   int index = 0;
   Board board;
-  Color currentPlayer = Color.WHITE;
+  Color currentColor = Color.WHITE;
+  Player playerTurn;
   Color winner = Color.NONE;
 
   public Game(Board board){
     this.board = board;
   }
 
-  public Color getCurrentPlayer(){
-    return currentPlayer;
+  public void setPlayerTurn(Player firstPlayer){
+    playerTurn = firstPlayer;
+  }
+
+  public Color getCurrentColor(){
+    return currentColor;
   }
 
   public void changeColor(){
-    if (currentPlayer == Color.WHITE){
-      currentPlayer = Color.BLACK;
+    if (currentColor == Color.WHITE){
+      currentColor = Color.BLACK;
     } else {
-      currentPlayer = Color.WHITE;
+      currentColor = Color.WHITE;
     }
+  }
+
+  public void changePlayer(){
+    playerTurn = playerTurn.getOpponent();
   }
 
   public Move getLastMove(){
@@ -32,6 +45,7 @@ public class Game{
     history[index] = move;
     board.applyMove(move);
     changeColor();
+    changePlayer();
     index += 1;
   }
 
@@ -51,10 +65,35 @@ public class Game{
     }
 
     // all pawns gone
-
+    if (noPawns(Color.WHITE) || noPawns(Color.BLACK)) {
+      return true;
+    }
 
     // no valid moves left
+    return noValidMoves();
+  }
+
+  private boolean noValidMoves(){
+    Move[] valid = playerTurn.getOpponent().getAllValidMoves();
+    if (valid[0] == null){
+      return true;
+    }
     return false;
+  }
+
+  private boolean noPawns(Color color){
+    assert (color != Color.NONE): "Can't check no pawns for no colour";
+
+    for (int i = 0; i < 8; i++){
+      for (int j = 1; j < 7; j++){
+        if (board.getSquare(i, j).occupiedBy() == color){
+          return false;
+        }
+      }
+    }
+
+    winner = (color == Color.WHITE) ? Color.BLACK : Color.WHITE;
+    return true;
   }
 
   private boolean whiteWin(){
@@ -81,8 +120,8 @@ public class Game{
     return winner;
   }
 
-  // change switch statement to better method?
   public Move parseMove(String san){
+    san = san.toUpperCase();
     boolean ambiguous = true;
     boolean isAnyCapture = false;
     boolean isEnPassantCapture = false;
@@ -101,7 +140,7 @@ public class Game{
       ambiguous = false;
       from = "" + san.charAt(0) + san.charAt(1);
       to = "" + san.charAt(3) + san.charAt(4);
-      if (san.charAt(3) == 'x'){
+      if (san.charAt(2) == 'X'){
         isAnyCapture = true;
       }
       break;
@@ -115,6 +154,8 @@ public class Game{
     if (!isValidCoord(toX, toY)){
       return null;
     }
+
+    //look here
     if (ambiguous){
       from = calculateFrom(toX, toY);
       if (from == null){
@@ -128,13 +169,12 @@ public class Game{
     if (!isValidCoord(fromX, fromY)){
       return null;
     }
-
     Square toSq = board.getSquare(toX, toY);
     Square fromSq = board.getSquare(fromX, fromY);
-
+    /*
     if (!isValidSquares(toSq, fromSq)){
       return null;
-    }
+    } */
     // returns null if a capture isnt explicitly stated, required?
     // should be after checking is a valid pawn selection
 
@@ -145,49 +185,52 @@ public class Game{
                && !(isAnyCapture)){
       return null;
     }
+
     // this is not efficient (repeated calls to isEnpassantCapture and
     //   isCapture so can be tidied later
     if (len == 5){
       isNormalCapture = isCapture(toSq);
       isEnPassantCapture = isEnPassantCapture(toSq);
     }
-    
-    return new Move(toSq, fromSq, isNormalCapture, isEnPassantCapture);
+    Move move = new Move(fromSq, toSq, isNormalCapture, isEnPassantCapture);
+    if (!isValidMove(move)){
+      return null;
+    }
+    return move;
   } 
 
-  // assumes a valid 'to' move
+  // assumes a valid 'to' move, really very wrong i think
   private String calculateFrom(int toX, int toY){
     String from;
-    switch (currentPlayer){
+    switch (currentColor){
     case WHITE:
-      if (board.getSquare(toX, (toY - 1)).occupiedBy() == Color.WHITE &&
-          board.getSquare(toX, (toY - 2)).occupiedBy() == Color.BLACK){
+      if (board.getSquare(toX, (toY - 1)).occupiedBy() == Color.WHITE){
         from = "" + (char) ((toX) + (int) 'A')
-                  + (char) ((toY - 1) + (int) '0');
-      } else if(board.getSquare(toX, (toY - 1)).occupiedBy() == Color.BLACK &&
+                  + (char) ((toY - 1) + (int) '1');
+      } else if(board.getSquare(toX, (toY - 1)).occupiedBy() == Color.NONE &&
                  board.getSquare(toX, (toY - 2)).occupiedBy() == Color.WHITE){
         from = "" + (char) ((toX) + (int) 'A')
-                  + (char) ((toY - 2) + (int) '0');
+                  + (char) ((toY - 2) + (int) '1');
       } else {
         from = null;
       }
       break;
     case BLACK:
       if (board.getSquare(toX, (toY + 1)).occupiedBy() == Color.BLACK &&
-          board.getSquare(toX, (toY + 2)).occupiedBy() == Color.WHITE){
+          board.getSquare(toX, (toY + 2)).occupiedBy() == Color.NONE){
         from = "" + (char) ((toX) + (int) 'A')
-                  + (char) ((toY + 1) + (int) '0');
-      } else if(board.getSquare(toX, (toY + 1)).occupiedBy() == Color.WHITE &&
+                  + (char) ((toY + 1) + (int) '1');
+      } else if(board.getSquare(toX, (toY + 1)).occupiedBy() == Color.NONE &&
                  board.getSquare(toX, (toY + 2)).occupiedBy() == Color.BLACK){
         from = "" + (char) ((toX) + (int) 'A')
-                  + (char) ((toY + 2) + (int) '0');
+                  + (char) ((toY + 2) + (int) '1');
       } else {
         from = null;
       }
       break;
 
     default:
-      assert (true): "currentPlayer is NONE when calculating move";
+      assert (true): "currentColor is NONE when calculating move";
       from = null;
     }
     
@@ -217,7 +260,7 @@ public class Game{
       "Coordinate cannot be converted to int if length != 2";
 
     char yNumber = coord.charAt(1);
-    int yInt = (int) yNumber - (int) '0';
+    int yInt = (int) yNumber - (int) '1';
 
     return yInt;
   }
@@ -230,16 +273,16 @@ public class Game{
     return false;
   }
 
-  private boolean isEnPassantCapture(Square to){
+  public boolean isEnPassantCapture(Square to){
     if (index == 0){
       return false;
     }
     Move prevMove = history[index - 1];
     if (prevMove.isFirstMove() && (to.getX() == prevMove.getTo().getX())){
-      switch (currentPlayer){
-      case WHITE:
-        return ((to.getY() + 1) == prevMove.getTo().getY());
+      switch (currentColor){
       case BLACK:
+        return ((to.getY() + 1) == prevMove.getTo().getY());
+      case WHITE:
         return ((to.getY() - 1) == prevMove.getTo().getY());
       default:
         assert (true): "Can't check En Passant for current player NONE";
@@ -250,11 +293,13 @@ public class Game{
   }
 
   private boolean isValidSquares(Square to, Square from){
-    if (from.occupiedBy() != currentPlayer){
+
+    if (from.occupiedBy() != currentColor){
+      System.err.println("Not from your pawn");
       return false;
     }
     // jeeeeeeeeeeeeez this is so ugly
-    switch (currentPlayer){
+    switch (currentColor){
     case WHITE:
       if (((to.getY() == (from.getY() + 1)) 
            && (from.occupiedBy() == Color.NONE)
@@ -302,5 +347,36 @@ public class Game{
       return false;
     }
     return false;
+
+
+  }
+
+  private boolean isValidMove(Move move){
+    boolean contains = false;
+    Square[] pawnList = playerTurn.getAllPawns();
+    for (Square sq : pawnList){
+      if (move.getFrom().equals(sq)){
+        contains = true;
+        break;
+      }
+    }
+    if (!contains){
+      System.err.println("not yo pawn");
+      return false;
+    }
+
+    Move[] validMoves = playerTurn.getAllValidMoves();
+    contains = false;
+    for (Move mv : validMoves){
+      if (move.equals(mv)){
+        contains = true;
+        break;
+      }
+    }
+    if(!contains){
+      System.err.println("not a good move nub");
+      return false;
+    }
+    return true;
   }
 }
