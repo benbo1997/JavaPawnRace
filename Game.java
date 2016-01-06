@@ -44,9 +44,9 @@ public class Game{
   public void applyMove(Move move){
     history[index] = move;
     board.applyMove(move);
+    index += 1;
     changeColor();
     changePlayer();
-    index += 1;
   }
 
   public void unapplyMove(Move move){
@@ -56,6 +56,7 @@ public class Game{
     board.unapplyMove(history[(index - 1)]);
     index -= 1;
     changeColor();
+    changePlayer();
   }
 
   public boolean isFinished(){

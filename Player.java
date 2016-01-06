@@ -52,7 +52,6 @@ public class Player {
     return pawnSquares;
   }
 
-  //todo: add first move
   public Move[] getAllValidMoves(){
     Move[] allValidMoves = new Move[32];
     Square[] pawnSquares = getAllPawns();
@@ -176,22 +175,144 @@ public class Player {
     return allValidMoves;
   }
 
+  // checks if is a passed pawn before a move is made
   public boolean isPassedPawn(Square square){
-    //todo: implement isPassedPawn
-    return false;
+    if (this.getColor() == Color.WHITE){
+      int x = square.getX();
+      int y = square.getY();
+
+
+      if (y == 7){
+        return true;
+        //game should be won, code shouldn't run here
+      }
+      if (x == 0){
+        for (int i = (y + 1); i < 8; i++){
+          if (board.getSquare(0, i).occupiedBy() == Color.BLACK || board.getSquare(1, i).occupiedBy() == Color.BLACK){
+            return false;
+          }
+        }
+        return true;
+      } else if (x == 7){
+        for (int i = (y + 1); i < 8; i++){
+          if (board.getSquare(7, i).occupiedBy() == Color.BLACK || board.getSquare(6, i).occupiedBy() == Color.BLACK){
+            return false;
+          }
+        }
+        return true;
+      } else {
+        for (int i = (y + 1); i < 8; i++){
+          if (board.getSquare(x, i).occupiedBy() == Color.BLACK
+                  || board.getSquare((x - 1), i).occupiedBy() == Color.BLACK
+                  || board.getSquare((x + 1), i).occupiedBy() == Color.BLACK){
+            return false;
+          }
+        }
+        return true;
+      }
+    } else {
+      int x = square.getX();
+      int y = square.getY();
+
+
+      if (y == 0) {
+        return true;
+        //game should be won, code shouldn't run here
+      }
+      if (x == 0) {
+        for (int i = (y - 1); i >= 0; i--) {
+          if (board.getSquare(0, i).occupiedBy() == Color.WHITE || board.getSquare(1, i).occupiedBy() == Color.WHITE) {
+            return false;
+          }
+        }
+        return true;
+      } else if (x == 7) {
+        for (int i = (y - 1); i >= 0; i--) {
+          if (board.getSquare(7, i).occupiedBy() == Color.WHITE || board.getSquare(6, i).occupiedBy() == Color.WHITE) {
+            return false;
+          }
+        }
+        return true;
+      } else {
+        for (int i = (y - 1); i >= 0; i--) {
+          if (board.getSquare(x, i).occupiedBy() == Color.WHITE
+                  || board.getSquare((x - 1), i).occupiedBy() == Color.WHITE
+                  || board.getSquare((x + 1), i).occupiedBy() == Color.WHITE) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
   }
 
   public void makeMove(){
-    if (isComputerPlayer){
-      Move[] allValidMoves = getAllValidMoves();
-      Move nextMove;
+    Move[] allValidMoves = getAllValidMoves();
+    Move nextMove = null;
+
+    //non-random method
+    nextMove = decideMove(allValidMoves);
+
+    // random method runs if null nextMove
+    if (nextMove == null){
       Random random = new Random();
       do{
         nextMove = allValidMoves[random.nextInt(allValidMoves.length)];
       }while (nextMove == null);
-
-      game.applyMove(nextMove);
     }
+
+    game.applyMove(nextMove);
+
     //todo: implement makeMove
+  }
+
+  // weirdly refuses to win the game, problem with isPassedPawn on last column methink (just for black)
+  private Move decideMove(Move[] allValidMoves){
+    Move nextMove = null;
+    Square passedPawn = null;
+    for (Move mv: allValidMoves){
+      if(mv == null){
+        continue;
+      }
+      game.applyMove(mv);
+      Square[] pawns = getAllPawns();
+      for(Square pawn: pawns){
+        if (pawn == null){
+          continue;
+        }
+        if(isPassedPawn(pawn)){
+
+          if (passedPawn == null){
+            passedPawn = pawn;
+            nextMove = mv;
+          } else if (squaresRemaining(pawn) < squaresRemaining(passedPawn)){
+            nextMove = mv;
+            passedPawn = pawn;
+          }
+        }
+      }
+
+      game.unapplyMove(mv);
+    }
+    if (passedPawn != null){
+      System.err.println(squaresRemaining(passedPawn));
+    }
+
+    return nextMove;
+  }
+
+  // returns 8 for checking a none square
+  private int squaresRemaining(Square pawn){
+    int currentY = pawn.getY();
+    Color color = pawn.occupiedBy();
+    if (color == color.NONE){
+      return 8;
+    }
+
+    if (color == color.WHITE){
+      return (7 - currentY);
+    } else {
+      return currentY;
+    }
   }
 }
