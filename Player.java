@@ -130,7 +130,7 @@ public class Player {
         }
 
         //check for move forward
-        if ((y - 1) > 0 && board.getSquare(x, (y - 1)).occupiedBy() == Color.NONE) {
+        if ((y - 1) >= 0 && board.getSquare(x, (y - 1)).occupiedBy() == Color.NONE) {
           Move move = new Move(squareFrom, board.getSquare(x, (y - 1)), false, false);
           allValidMoves[index] = move;
           index += 1;
@@ -184,7 +184,7 @@ public class Player {
 
       if (y == 7){
         return true;
-        //game should be won, code shouldn't run here
+        //game should be won, code shouldn't run here, unless checking for next move as a win
       }
       if (x == 0){
         for (int i = (y + 1); i < 8; i++){
@@ -217,7 +217,7 @@ public class Player {
 
       if (y == 0) {
         return true;
-        //game should be won, code shouldn't run here
+        //game should be won, code shouldn't run here, unless checking for next move as a win
       }
       if (x == 0) {
         for (int i = (y - 1); i >= 0; i--) {
@@ -255,10 +255,7 @@ public class Player {
 
     // random method runs if null nextMove
     if (nextMove == null){
-      Random random = new Random();
-      do{
-        nextMove = allValidMoves[random.nextInt(allValidMoves.length)];
-      }while (nextMove == null);
+      nextMove = randomMove();
     }
 
     game.applyMove(nextMove);
@@ -266,8 +263,24 @@ public class Player {
     //todo: implement makeMove
   }
 
-  // weirdly refuses to win the game, problem with isPassedPawn on last column methink (just for black)
+
+  // pre: not in stalemate
+  private Move randomMove(){
+    Move nextMove = null;
+    Move[] allValidMoves = getAllValidMoves();
+    Random random = new Random();
+    do{
+      nextMove = allValidMoves[random.nextInt(allValidMoves.length)];
+    }while (nextMove == null);
+
+    return nextMove;
+  }
+
   private Move decideMove(Move[] allValidMoves){
+    if (allValidMoves[0] == null){
+      randomMove();
+    }
+
     Move nextMove = null;
     Square passedPawn = null;
     for (Move mv: allValidMoves){
@@ -276,33 +289,127 @@ public class Player {
       }
       game.applyMove(mv);
       Square[] pawns = getAllPawns();
-      for(Square pawn: pawns){
-        if (pawn == null){
+      for(Square pawn: pawns) {
+        if (pawn == null) {
           continue;
         }
-        if(isPassedPawn(pawn)){
+        if (isPassedPawn(pawn)) {
 
-          if (passedPawn == null){
+          if (passedPawn == null) {
             passedPawn = pawn;
             nextMove = mv;
-          } else if (squaresRemaining(pawn) < squaresRemaining(passedPawn)){
-            nextMove = mv;
-            passedPawn = pawn;
+          } else if (squaresRemaining(pawn) < squaresRemaining(passedPawn)) {
+            if (!isLosingMove(pawn)) {
+              nextMove = mv;
+              passedPawn = pawn;
+            }
+
           }
         }
       }
 
       game.unapplyMove(mv);
     }
-    if (passedPawn != null){
-      System.err.println(squaresRemaining(passedPawn));
+
+    Square[] sqToBlock = needToBlock(passedPawn);
+
+    for (Square s : sqToBlock){
+      if (canBeBlocked(s, allValidMoves)){
+        nextMove = blockPawn(s, allValidMoves);
+      }
     }
 
     return nextMove;
   }
 
+  private Move blockPawn(Square pawn, Move[] allValidMoves){
+    Move nextMove = null;
+    for(Move m: allValidMoves){
+      if (m.getTo().equals(pawn) && m.isAnyCapture()){
+        board.applyMove(m);
+        if (!isLost()){
+          nextMove = m;
+        }
+        board.unapplyMove(m);
+        if (nextMove != null){
+          return nextMove;
+        }
+        //todo: improve
+      }
+    }
+    return null;
+  }
+
+  private Square[] needToBlock(Square passedPawn){
+    Square[] sqToBlock = new Square[8];
+    int index = 0;
+    for (Square p : Opponent.getAllPawns()){
+      if (Opponent.squaresRemaining(p) <= squaresRemaining(passedPawn)){
+        sqToBlock[index] = p;
+        index++;
+      }
+    }
+    return sqToBlock;
+  }
+
+  private Boolean canBeBlocked(Square pawn, Move[] allValidMoves){
+    boolean result = false;
+    for(Move m: allValidMoves){
+      if(m == null){
+        continue;
+      }
+      if (m.getTo().equals(pawn) && m.isAnyCapture()){
+        result &= true;
+        return result;
+      }
+    }
+    return result;
+
+  }
+
+  private Boolean isNearlyLost(){
+    return false;
+  }
+
+  private Boolean isLost(){
+    boolean result = false;
+    Square[] myPawns = getAllPawns();
+    Square[] theirPawns = Opponent.getAllPawns();
+
+    for (Square p : theirPawns){
+      for (Square myP : myPawns){
+        result &= (Opponent.isPassedPawn(p) && Opponent.squaresRemaining(p) <= squaresRemaining(myP));
+      }
+      if (result == true){
+        return result;
+      }
+    }
+
+    return result;
+  }
+
+  private Boolean isLosingMove(Square passedPawn){
+
+    Square[] opponentPawns = Opponent.getAllPawns();
+    int playerSquaresRem = squaresRemaining(passedPawn);
+
+    for (Square p : opponentPawns){
+      if (p == null){
+        continue;
+      }
+      if (Opponent.isPassedPawn(p) && Opponent.squaresRemaining(p) <= playerSquaresRem){
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // returns 8 for checking a none square
-  private int squaresRemaining(Square pawn){
+  public int squaresRemaining(Square pawn){
+    if (pawn == null){
+      return 8;
+    }
     int currentY = pawn.getY();
     Color color = pawn.occupiedBy();
     if (color == color.NONE){

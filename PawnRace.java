@@ -84,6 +84,7 @@ public class PawnRace {
       }
     }
 
-    System.out.println("GAME OVER: " + game.getGameResult() + " wins!");
+    System.out.println("GAME OVER: " + game.getGameResult() + " WINS!");
+    board.display();
   }
 }
